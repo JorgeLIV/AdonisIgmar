@@ -8,6 +8,7 @@ export default class ApiController {
     const apiLaravel3 = 'http://192.168.1.135:8000/api/personas'; // DANI
     const apiAdonis4 = 'http://192.168.1.149:3333/categorias'; // JORGE
 
+    
     const resultados = {
       laravel1: { status: 'error' },
       adonis2: { status: 'error' },
