@@ -6,7 +6,7 @@ import { DateTime } from 'luxon';
 export default class VentasController {
   public async index({ response }: HttpContext) {
     try {
-      const ventas = await Venta.query().orderBy('ventaID', 'desc'); 
+      const ventas = await Venta.query().orderBy('ventaID', 'desc').whereNull('deleted_at'); 
       return response.json(ventas);
     } catch (error) {
       return response.status(500).json({ message: 'Error al obtener las ventas', error: error.message });
@@ -16,25 +16,20 @@ export default class VentasController {
   public async store({ request, response }: HttpContext) {
     try {
       const fakeVentaData = {
-        clienteID: faker.number.int({ min: 1, max: 2 }), 
-        empleadoID: faker.number.int({ min: 1, max: 2 }),
-        fecha_venta: DateTime.now().toISO(), 
+        clienteID: faker.number.int({ min: 1, max: 1 }), 
+        empleadoID: faker.number.int({ min: 1, max: 1 }),
+        fecha_venta: DateTime.now(),
         total: parseFloat(faker.commerce.price()), 
       };
 
-      let ventaData: any; 
-      ventaData = {
+      let ventaData = {
         ...fakeVentaData,
         ...request.only(['clienteID', 'empleadoID', 'total']), 
       };
 
-      function processVentaData(data: any) {
-        console.log(data);
-      }
 
-      processVentaData(ventaData);
+      ventaData.fecha_venta = DateTime.now(); 
 
-      console.log('Datos de la venta a crear:', ventaData); 
       const venta = await Venta.create(ventaData);
       return response.status(201).json(venta);
     } catch (error) {
@@ -45,7 +40,7 @@ export default class VentasController {
 
   public async show({ params, response }: HttpContext) {
     try {
-      const venta = await Venta.find(params.id);
+      const venta = await Venta.query().where('ventaID', params.id).whereNull('deleted_at').first(); 
       if (!venta) {
         return response.status(404).json({ message: 'Venta no encontrada' });
       }
@@ -55,18 +50,17 @@ export default class VentasController {
     }
   }
 
-  // Actualizar una venta por ID
   public async update({ params, request, response }: HttpContext) {
     try {
-      const venta = await Venta.find(params.id); // Usa params.id para buscar por ID
+      const venta = await Venta.query().where('ventaID', params.id).whereNull('deleted_at').first(); 
       if (!venta) {
         return response.status(404).json({ message: 'Venta no encontrada' });
       }
 
       const updatedData = request.only(['clienteID', 'empleadoID', 'fecha_venta', 'total']);
-      console.log('Datos para actualizar:', updatedData); // Log para depuración
+      console.log('Datos para actualizar:', updatedData); 
 
-      // Actualiza los datos de la venta
+      
       if (updatedData.fecha_venta) {
         venta.fecha_venta = DateTime.fromISO(updatedData.fecha_venta);
       }
@@ -85,15 +79,19 @@ export default class VentasController {
     }
   }
 
-
   public async destroy({ params, response }: HttpContext) {
     try {
-      const venta = await Venta.find(params.id); 
+      const venta = await Venta.query().where('ventaID', params.id).whereNull('deleted_at').first(); 
       if (!venta) {
         return response.status(404).json({ message: 'Venta no encontrada' });
       }
-      await venta.delete(); 
-      return response.status(204).json({ message: 'eliminado con éxito' }); 
+  
+      
+      venta.deletedAt = DateTime.now(); 
+      await venta.save(); 
+      
+      
+      return response.status(200).json({ message: 'Venta eliminada con éxito' }); 
     } catch (error) {
       return response.status(500).json({ message: 'Error al eliminar la venta', error: error.message });
     }

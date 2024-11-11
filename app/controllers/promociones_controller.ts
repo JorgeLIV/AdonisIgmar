@@ -6,7 +6,7 @@ import { DateTime } from 'luxon';
 export default class PromocionesController {
   public async index({ response }: HttpContext) {
     try {
-      const promociones = await Promocion.all();
+      const promociones = await Promocion.query().whereNull('deletedAt'); 
       return response.json(promociones);
     } catch (error) {
       return response.status(500).json({ message: 'Error al obtener las promociones', error: error.message });
@@ -15,7 +15,7 @@ export default class PromocionesController {
 
   public async store({ request, response }: HttpContext) {
     try {
-      const productoID = request.input('productoID'); // Tomar directamente el productoID del request
+      const productoID = request.input('productoID');
 
       if (!productoID) {
         return response.status(400).json({ message: 'Se requiere un productoID' });
@@ -26,7 +26,7 @@ export default class PromocionesController {
         descuento: request.input('descuento') || faker.number.int({ min: 5, max: 50 }),
         fecha_inicio: request.input('fecha_inicio') || DateTime.fromJSDate(faker.date.past()).toISODate(),
         fecha_fin: request.input('fecha_fin') || DateTime.fromJSDate(faker.date.future()).toISODate(),
-        productoID: productoID, 
+        productoID: productoID,
       };
 
       const promocion = await Promocion.create(promocionData);
@@ -38,7 +38,11 @@ export default class PromocionesController {
 
   public async show({ params, response }: HttpContext) {
     try {
-      const promocion = await Promocion.find(params.id);
+      const promocion = await Promocion.query()
+        .where('promocionID', params.id)
+        .whereNull('deletedAt') 
+        .first();
+
       if (!promocion) {
         return response.status(404).json({ message: 'Promoción no encontrada' });
       }
@@ -50,7 +54,11 @@ export default class PromocionesController {
 
   public async update({ params, request, response }: HttpContext) {
     try {
-      const promocion = await Promocion.find(params.id);
+      const promocion = await Promocion.query()
+        .where('promocionID', params.id)
+        .whereNull('deletedAt') 
+        .first();
+
       if (!promocion) {
         return response.status(404).json({ message: 'Promoción no encontrada' });
       }
@@ -64,16 +72,19 @@ export default class PromocionesController {
     }
   }
 
-
   public async destroy({ params, response }: HttpContext) {
     try {
-      const promocion = await Promocion.find(params.id);
+      const promocion = await Promocion.query()
+        .where('promocionID', params.id)
+        .whereNull('deletedAt') 
+        .first();
+
       if (!promocion) {
         return response.status(404).json({ message: 'Promoción no encontrada' });
       }
 
-      await promocion.delete();
-      return response.status(204).json({ message: 'eliminado con éxito' });
+      await promocion.softDelete();
+      return response.status(200).json({ message: 'Promoción eliminada correctamente' }); 
     } catch (error) {
       return response.status(500).json({ message: 'Error al eliminar la promoción', error: error.message });
     }

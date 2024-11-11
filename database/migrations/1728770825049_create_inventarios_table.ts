@@ -5,11 +5,12 @@ export default class extends BaseSchema {
 
   async up() {
     this.schema.createTable(this.tableName, (table) => {
-      table.increments('inventarioID'); 
-      table.integer('productoID').unsigned().references('productoID').inTable('productos').onDelete('CASCADE'); // Asegúrate de que este sea el nombre correcto
+      table.increments('inventarioID');
+      table.integer('productoID').unsigned().references('productoID').inTable('productos').onDelete('CASCADE');
       table.integer('cantidad').notNullable();
-      table.timestamp('created_at', { useTz: true }); 
-      table.timestamp('updated_at', { useTz: true }); 
+      table.timestamp('created_at', { useTz: true });
+      table.timestamp('updated_at', { useTz: true });
+      table.timestamp('deleted_at', { useTz: true }).nullable();
     });
   }
 

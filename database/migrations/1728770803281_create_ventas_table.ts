@@ -12,6 +12,7 @@ export default class extends BaseSchema {
       table.decimal('total', 10, 2).notNullable();
       table.timestamp('created_at', { useTz: true }).defaultTo(this.now());
       table.timestamp('updated_at', { useTz: true }).defaultTo(this.now());
+      table.timestamp('deleted_at', { useTz: true }).nullable();
     });
   }
 

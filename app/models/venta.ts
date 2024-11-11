@@ -22,4 +22,7 @@ export default class Venta extends BaseModel {
 
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime;
+
+  @column.dateTime({ columnName: 'deleted_at' })
+  declare deletedAt: DateTime | null;
 }

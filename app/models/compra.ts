@@ -22,4 +22,13 @@ export default class Compra extends BaseModel {
 
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime;
+
+  @column.dateTime({ autoCreate: false, autoUpdate: false }) 
+  declare deleted_at: DateTime | null; 
+
+  
+  public async softDelete() {
+    this.deleted_at = DateTime.local();
+    await this.save(); 
+  }
 }

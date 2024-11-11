@@ -22,4 +22,13 @@ export default class Cliente extends BaseModel {
 
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime;
+
+  @column.dateTime({ columnName: 'deletedAt' })
+  declare deletedAt: DateTime | null; 
+
+  
+  public async softDelete() {
+    this.deletedAt = DateTime.local();
+    await this.save();
+  }
 }

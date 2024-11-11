@@ -6,7 +6,7 @@ import { DateTime } from 'luxon';
 export default class DetallesVentaController {
   public async index({ response }: HttpContext) {
     try {
-      const detalles = await DetalleVenta.all();
+      const detalles = await DetalleVenta.query().whereNull('deleted_at'); 
       return response.json(detalles);
     } catch (error) {
       return response.status(500).json({ message: 'Error al obtener detalles de venta', error: error.message });
@@ -16,8 +16,8 @@ export default class DetallesVentaController {
   public async store({ response }: HttpContext) {
     try {
       const fakeDetalleData = {
-        ventaID: faker.number.int({ min: 1, max: 2 }),
-        productoID: faker.number.int({ min: 1, max: 2 }),
+        ventaID: faker.number.int({ min: 1, max: 1 }),
+        productoID: faker.number.int({ min: 1, max: 1 }),
         cantidad: faker.number.int({ min: 1, max: 5 }), 
         precio_unitario: parseFloat(faker.commerce.price()),
         subtotal: parseFloat(faker.commerce.price()), 
@@ -41,7 +41,7 @@ export default class DetallesVentaController {
 
   public async show({ params, response }: HttpContext) {
     try {
-      const detalle = await DetalleVenta.find(params.id);
+      const detalle = await DetalleVenta.query().where('detalleID', params.id).whereNull('deleted_at').first(); 
       if (!detalle) {
         return response.status(404).json({ message: 'Detalle no encontrado' });
       }
@@ -53,12 +53,12 @@ export default class DetallesVentaController {
 
   public async update({ params, request, response }: HttpContext) {
     try {
-      const detalle = await DetalleVenta.find(params.id);
+      const detalle = await DetalleVenta.query().where('detalleID', params.id).whereNull('deleted_at').first(); 
       if (!detalle) {
         return response.status(404).json({ message: 'Detalle no encontrado' });
       }
 
-      // Obtener todos los parámetros a actualizar, incluyendo precio_unitario
+      
       const updateData = request.only(['ventaID', 'productoID', 'cantidad', 'precio_unitario', 'subtotal']);
       detalle.merge(updateData);
       await detalle.save();
@@ -70,12 +70,14 @@ export default class DetallesVentaController {
 
   public async destroy({ params, response }: HttpContext) {
     try {
-      const detalle = await DetalleVenta.find(params.id);
+      const detalle = await DetalleVenta.query().where('detalleID', params.id).whereNull('deleted_at').first(); 
       if (!detalle) {
         return response.status(404).json({ message: 'Detalle no encontrado' });
       }
-      await detalle.delete();
-      return response.status(204).json({ message: 'eliminado con éxito' });
+      detalle.deletedAt = DateTime.now(); 
+      await detalle.save(); 
+      
+      return response.status(200).json({ message: 'Detalle eliminado con éxito' }); 
     } catch (error) {
       return response.status(500).json({ message: 'Error al eliminar el detalle de venta', error: error.message });
     }

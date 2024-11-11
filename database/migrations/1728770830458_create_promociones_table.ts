@@ -13,6 +13,7 @@ export default class extends BaseSchema {
       table.decimal('descuento', 5, 2).notNullable();
       table.timestamp('created_at', { useTz: true });
       table.timestamp('updated_at', { useTz: true });
+      table.timestamp('deleted_at', { useTz: true }).nullable(); 
     });
   }
 

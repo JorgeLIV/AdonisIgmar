@@ -1,5 +1,5 @@
-import { BaseModel, column } from '@adonisjs/lucid/orm';
 import { DateTime } from 'luxon';
+import { BaseModel, column } from '@adonisjs/lucid/orm';
 
 export default class DetalleCompra extends BaseModel {
   public static table = 'detalles_compras'; 
@@ -27,4 +27,13 @@ export default class DetalleCompra extends BaseModel {
 
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime; 
+
+  @column.dateTime({ autoCreate: false, autoUpdate: false }) 
+  declare deletedAt: DateTime | null; 
+
+  
+  public async softDelete() {
+    this.deletedAt = DateTime.local(); 
+    await this.save();
+  }
 }

@@ -6,7 +6,7 @@ import { DateTime } from 'luxon';
 export default class ComprasController {
   public async index({ response }: HttpContext) {
     try {
-      const compras = await Compra.all();
+      const compras = await Compra.query().whereNull('deleted_at'); 
       return response.json(compras);
     } catch (error) {
       return response.status(500).json({ message: 'Error al obtener las compras', error: error.message });
@@ -16,8 +16,8 @@ export default class ComprasController {
   public async store({ request, response }: HttpContext) {
     try {
       const fakeCompraData = {
-        proveedorID: faker.number.int({ min: 1, max: 2 }),
-        empleadoID: faker.number.int({ min: 1, max: 2 }),
+        proveedorID: faker.number.int({ min: 1, max: 1 }),
+        empleadoID: faker.number.int({ min: 1, max: 1 }),
         fecha_compra: DateTime.fromJSDate(faker.date.recent()),
         total: parseFloat(faker.commerce.price()),
       };
@@ -36,7 +36,7 @@ export default class ComprasController {
 
   public async show({ params, response }: HttpContext) {
     try {
-      const compra = await Compra.find(params.id);
+      const compra = await Compra.query().where('compraID', params.id).whereNull('deleted_at').first(); 
       if (!compra) {
         return response.status(404).json({ message: 'Compra no encontrada' });
       }
@@ -48,7 +48,7 @@ export default class ComprasController {
 
   public async update({ params, request, response }: HttpContext) {
     try {
-      const compra = await Compra.find(params.id);
+      const compra = await Compra.query().where('compraID', params.id).whereNull('deleted_at').first(); 
       if (!compra) {
         return response.status(404).json({ message: 'Compra no encontrada' });
       }
@@ -69,14 +69,15 @@ export default class ComprasController {
 
   public async destroy({ params, response }: HttpContext) {
     try {
-      const compra = await Compra.find(params.id);
+      const compra = await Compra.query().where('compraID', params.id).whereNull('deleted_at').first(); 
       if (!compra) {
         return response.status(404).json({ message: 'Compra no encontrada' });
       }
-      await compra.delete();
-      return response.status(204).json({ message: 'eliminado con éxito' })
+      await compra.softDelete(); 
+      return response.status(200).json({ message: 'Compra eliminada con éxito' }); 
     } catch (error) {
       return response.status(500).json({ message: 'Error al eliminar la compra', error: error.message });
     }
   }
+  
 }

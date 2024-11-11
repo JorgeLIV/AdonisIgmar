@@ -28,4 +28,13 @@ export default class Producto extends BaseModel {
 
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime;
+
+  @column.dateTime({ autoCreate: false, autoUpdate: false }) 
+  declare deletedAt: DateTime | null; 
+
+  
+  public async softDelete() {
+    this.deletedAt = DateTime.local(); 
+    await this.save(); 
+  }
 }

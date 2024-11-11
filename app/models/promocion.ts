@@ -1,5 +1,5 @@
-import { BaseModel, column } from '@adonisjs/lucid/orm';
 import { DateTime } from 'luxon';
+import { BaseModel, column } from '@adonisjs/lucid/orm';
 
 export default class Promocion extends BaseModel {
   public static table = 'promociones';
@@ -15,7 +15,6 @@ export default class Promocion extends BaseModel {
 
   @column()
   declare descuento: number;
-
   @column.date()
   declare fecha_inicio: DateTime;
 
@@ -27,4 +26,13 @@ export default class Promocion extends BaseModel {
 
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime;
+
+  @column.dateTime({ autoCreate: false, autoUpdate: false }) 
+  declare deletedAt: DateTime | null; 
+
+  
+  public async softDelete() {
+    this.deletedAt = DateTime.local(); 
+    await this.save();
+  }
 }

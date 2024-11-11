@@ -6,7 +6,7 @@ import { DateTime } from 'luxon';
 export default class ProductosController {
   public async index({ response }: HttpContext) {
     try {
-      const productos = await Producto.all();
+      const productos = await Producto.query().whereNull('deleted_at'); 
       return response.json(productos);
     } catch (error) {
       return response.status(500).json({ message: 'Error al obtener los productos', error: error.message });
@@ -23,9 +23,10 @@ export default class ProductosController {
         fechaIngreso: DateTime.fromJSDate(faker.date.recent()),
       };
 
-      const productoData = { 
+      const productoData = {
         ...request.only(['nombre', 'stock', 'precio', 'descripcion', 'fechaIngreso']),
-        ...fakeProductoData 
+        ...fakeProductoData,
+        deletedAt: null,
       };
 
       const producto = await Producto.create(productoData);
@@ -37,7 +38,7 @@ export default class ProductosController {
 
   public async show({ params, response }: HttpContext) {
     try {
-      const producto = await Producto.find(params.id);
+      const producto = await Producto.query().where('productoID', params.id).whereNull('deleted_at').first();
       if (!producto) {
         return response.status(404).json({ message: 'Producto no encontrado' });
       }
@@ -49,7 +50,7 @@ export default class ProductosController {
 
   public async update({ params, request, response }: HttpContext) {
     try {
-      const producto = await Producto.find(params.id);
+      const producto = await Producto.query().where('productoID', params.id).whereNull('deleted_at').first();
       if (!producto) {
         return response.status(404).json({ message: 'Producto no encontrado' });
       }
@@ -61,7 +62,7 @@ export default class ProductosController {
 
       producto.merge(updatedData);
       await producto.save();
-      
+
       return response.json(producto);
     } catch (error) {
       return response.status(400).json({ message: 'Error al actualizar el producto', error: error.message });
@@ -74,10 +75,13 @@ export default class ProductosController {
       if (!producto) {
         return response.status(404).json({ message: 'Producto no encontrado' });
       }
-      await producto.delete();
-      return response.status(204).json({ message: 'eliminado con éxito' });
+      
+      await producto.softDelete();
+      
+     
+      return response.status(200).json({ message: 'Producto eliminado con éxito' });
     } catch (error) {
       return response.status(500).json({ message: 'Error al eliminar el producto', error: error.message });
     }
   }
-} 
+}

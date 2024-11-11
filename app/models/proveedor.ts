@@ -2,7 +2,7 @@ import { DateTime } from 'luxon';
 import { BaseModel, column } from '@adonisjs/lucid/orm';
 
 export default class Proveedor extends BaseModel {
-  public static table = 'proveedores';
+  public static table = 'proveedores'; // Nombre de la tabla
 
   @column({ isPrimary: true, columnName: 'proveedorID' })
   declare proveedorID: number;
@@ -24,4 +24,13 @@ export default class Proveedor extends BaseModel {
 
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime;
+
+  @column.dateTime({ autoCreate: false, autoUpdate: false }) 
+  declare deletedAt: DateTime | null; 
+
+  
+  public async softDelete() {
+    this.deletedAt = DateTime.local(); 
+    await this.save(); 
+  }
 }
